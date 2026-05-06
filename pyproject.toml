@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "image-to-text-cli"
+version = "0.1.0"
+description = "Extract and organize screenshot text using OCR"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["ocr", "screenshot", "cli", "text-extraction"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing",
+]
+
+dependencies = [
+    "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+tesseract = ["pytesseract>=0.3.10"]
+easyocr = ["easyocr>=1.7"]
+all-ocr = [
+    "pytesseract>=0.3.10",
+    "easyocr>=1.7",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+image-to-text = "image_to_text.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/image_to_text"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
+
+[tool.coverage.run]
+source = ["image_to_text"]
+
+[tool.coverage.report]
+fail_under = 50

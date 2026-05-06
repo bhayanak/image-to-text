@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+coverage.xml
+htmlcov/
+output/
+*.egg-info/
+dist/
+build/
+*.md
+!README.md
+!CHANGELOG.md
