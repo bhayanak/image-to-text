@@ -1,4 +1,4 @@
-# image-to-text-cli
+# img-to-text
 
 Extract and organize text from screenshots with OCR.
 
@@ -13,7 +13,7 @@ Extract and organize text from screenshots with OCR.
 ## Install
 
 ```bash
-pip install image-to-text-cli
+pip install img-to-text
 ```
 
 Local development install:
@@ -25,10 +25,10 @@ pip install -e ".[dev,all-ocr]"
 ## Usage
 
 ```bash
-image-to-text extract screenshot.png
-image-to-text extract screenshot.png --format all
-image-to-text extract screenshot1.png screenshot2.png --stdout --format json
-image-to-text raw screenshot.png --engine easyocr
+img-to-text extract screenshot.png
+img-to-text extract screenshot.png --format all
+img-to-text extract screenshot1.png screenshot2.png --stdout --format json
+img-to-text raw screenshot.png --engine easyocr
 ```
 
 ### Output formats

@@ -1,3 +1,6 @@
+import builtins
+import sys
+import types
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -240,24 +243,35 @@ def test_extract_text_no_ocr_installed(monkeypatch) -> None:
     """Test extract_text raises error when specific OCR engine not available."""
     from PIL import Image
 
+    real_import = builtins.__import__
+
+    def _import_fail_ocr(name, *args, **kwargs):
+        if name in {"pytesseract", "easyocr"}:
+            raise ImportError(name)
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _import_fail_ocr)
+
     img = Image.new("RGB", (100, 100), color=(200, 200, 200))
-    # This will raise if neither engine is available
-    # Just verify the error handling path exists
-    try:
-        result = extract_text(img, "auto")
-        # If we got here, at least one engine is installed - that's OK
-        assert isinstance(result, str)
-    except RuntimeError as e:
-        # No engines installed - expected
-        assert "OCR engine" in str(e) or "Unable to extract" in str(e)
+    with pytest.raises(RuntimeError, match="easyocr is not installed"):
+        extract_text(img, "auto")
 
 
 def test_extract_text_invalid_engine(monkeypatch) -> None:
     """Test extract_text raises error for invalid engine."""
     from PIL import Image
 
+    real_import = builtins.__import__
+
+    def _import_fail_ocr(name, *args, **kwargs):
+        if name in {"pytesseract", "easyocr"}:
+            raise ImportError(name)
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _import_fail_ocr)
+
     img = Image.new("RGB", (100, 100), color=(200, 200, 200))
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="An OCR engine is required"):
         extract_text(img, "invalid_engine")
 
 
@@ -283,3 +297,109 @@ def test_pil_to_bytes_conversion() -> None:
     data = _pil_to_bytes(img)
     assert isinstance(data, bytes)
     assert len(data) > 0
+
+
+def test_extract_sections_preserves_blank_line_inside_section() -> None:
+    text = """Description: line one
+
+line two"""
+    sections = _extract_sections(text)
+    assert sections["Description"] == "line one\n\nline two"
+
+
+def test_write_output_stdout_all_prints_all_formats(capsys) -> None:
+    records = [{"id": "A-1", "source_image": None, "sections": {"Notes": "ok"}, "full_text": "ok"}]
+    write_output(records, "test", "ignored", fmt="all", stdout=True)
+    out = capsys.readouterr().out
+    assert "### Defect A-1" in out
+    assert '"id": "A-1"' in out
+    assert "Defect A-1" in out
+
+
+def test_process_image_pipeline_happy_path(monkeypatch, tmp_path) -> None:
+    dummy_img = object()
+    monkeypatch.setattr(
+        "image_to_text.core.load_and_preprocess",
+        lambda *_args, **_kwargs: dummy_img,
+    )
+    monkeypatch.setattr(
+        "image_to_text.core.extract_text",
+        lambda *_args, **_kwargs: "ABC-1\nNotes: ok",
+    )
+    monkeypatch.setattr("image_to_text.core.clean_text", lambda text: text)
+    monkeypatch.setattr(
+        "image_to_text.core.parse_defects",
+        lambda text, source_image=None: [
+            {
+                "id": "ABC-1",
+                "source_image": source_image,
+                "sections": {"Notes": "ok"},
+                "full_text": text,
+            }
+        ],
+    )
+
+    calls = {"count": 0}
+
+    def _fake_write(defects, base_name, output_dir, fmt="both", stdout=False):
+        assert defects[0]["id"] == "ABC-1"
+        assert base_name == "sample"
+        assert output_dir == str(tmp_path)
+        assert fmt == "json"
+        assert stdout is False
+        calls["count"] += 1
+
+    monkeypatch.setattr("image_to_text.core.write_output", _fake_write)
+
+    from image_to_text.core import process_image
+
+    result = process_image("sample.png", output_dir=str(tmp_path), fmt="json")
+    assert result[0]["source_image"] == "sample.png"
+    assert calls["count"] == 1
+
+
+def test_extract_text_uses_tesseract_when_available(monkeypatch) -> None:
+    class FakeTesseract:
+        @staticmethod
+        def image_to_string(_img, lang="eng"):
+            assert lang == "eng"
+            return "from tesseract"
+
+    monkeypatch.setitem(sys.modules, "pytesseract", FakeTesseract)
+    monkeypatch.delitem(sys.modules, "easyocr", raising=False)
+    result = extract_text(object(), "auto")
+    assert result == "from tesseract"
+
+
+def test_extract_text_uses_easyocr_when_selected(monkeypatch) -> None:
+    class FakeReader:
+        def __init__(self, langs, verbose=False):
+            assert langs == ["en"]
+            assert verbose is False
+
+        def readtext(self, _data, detail=0):
+            assert detail == 0
+            return ["line one", "line two"]
+
+    fake_easy = types.SimpleNamespace(Reader=FakeReader)
+    monkeypatch.delitem(sys.modules, "pytesseract", raising=False)
+    monkeypatch.setitem(sys.modules, "easyocr", fake_easy)
+
+    from PIL import Image
+
+    img = Image.new("RGB", (16, 16), color=(255, 255, 255))
+    result = extract_text(img, "easyocr")
+    assert result == "line one\nline two"
+
+
+def test_extract_text_wraps_engine_exception(monkeypatch) -> None:
+    class BrokenTesseract:
+        @staticmethod
+        def image_to_string(_img, lang="eng"):
+            raise ValueError("broken engine")
+
+    monkeypatch.setitem(sys.modules, "pytesseract", BrokenTesseract)
+    monkeypatch.delitem(sys.modules, "easyocr", raising=False)
+
+    with pytest.raises(RuntimeError, match="Unable to extract text"):
+        extract_text(object(), "tesseract")

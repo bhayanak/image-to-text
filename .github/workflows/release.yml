@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/image-to-text-cli
+      url: https://pypi.org/p/img-to-text
     steps:
       - uses: actions/checkout@v4
 

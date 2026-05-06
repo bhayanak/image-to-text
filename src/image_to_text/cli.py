@@ -66,7 +66,7 @@ def cmd_raw(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="image-to-text",
+        prog="img-to-text",
         description="Extract and organize text from screenshots via OCR.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

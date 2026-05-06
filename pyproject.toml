@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "image-to-text-cli"
+name = "img-to-text"
 version = "0.1.0"
 description = "Extract and organize screenshot text using OCR"
 readme = "README.md"
@@ -40,7 +40,7 @@ dev = [
 ]
 
 [project.scripts]
-image-to-text = "image_to_text.cli:main"
+img-to-text = "image_to_text.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/image_to_text"]
