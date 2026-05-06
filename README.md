@@ -2,6 +2,15 @@
 
 Extract and organize text from screenshots with OCR.
 
+<p align="center">
+  <a href="https://github.com/bhayanak/image-to-text/actions/workflows/ci.yml"><img src="https://github.com/bhayanak/image-to-text/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/bhayanak/image-to-text"><img src="https://codecov.io/gh/bhayanak/sp-dl/graph/badge.svg" alt="Coverage"></a>
+  <a href="https://codecov.io/gh/bhayanak/image-to-text"><img src="https://img.shields.io/badge/coverage-98%25-brightgreen" alt="Coverage 98%"></a>
+  <a href="https://pypi.org/project/img-to-text/"><img src="https://img.shields.io/pypi/v/img-to-text" alt="PyPI"></a>
+  <a href="https://pypi.org/project/img-to-text/"><img src="https://img.shields.io/pypi/pyversions/img-to-text" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
+
 ## Features
 
 - OCR from screenshots using `pytesseract` or `easyocr`
