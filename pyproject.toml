@@ -60,4 +60,4 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
 source = ["image_to_text"]
 
 [tool.coverage.report]
-fail_under = 50
+fail_under = 90

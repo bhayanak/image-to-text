@@ -39,6 +39,6 @@ image-to-text raw screenshot.png --engine easyocr
 - `both`: markdown + JSON (default)
 - `all`: markdown + JSON + text
 
-LICENSE## License
+## License
 
 [MIT](LICENSE)
